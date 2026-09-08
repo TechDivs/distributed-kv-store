@@ -1,34 +1,43 @@
 #include "kv_store.hpp"
-#include <cassert>
-#include <iostream>
+#include <gtest/gtest.h>
 
-int main() {
+TEST(KVStoreTest, SetAndGet) {
     KVStore store;
-
-    // Test SET + GET
-    store.set("name","divyansh");
+    store.set("name", "divyansh");
     auto val = store.get("name");
 
-    assert(val.has_value());
-    assert(*val == "divyansh");
+    ASSERT_TRUE(val.has_value());
+    EXPECT_EQ(*val, "divyansh");
+}
 
-    // Test GET for missing key
-    auto missing = store.get("age");
-    assert(!missing.has_value());
+TEST(KVStoreTest, GetMissingKey) {
+    KVStore store;
+    auto val = store.get("missing");
 
-    // Test UPDATE
+    EXPECT_FALSE(val.has_value());
+}
+
+TEST(KVStoreTest, UpdateValue) {
+    KVStore store;
+
+    store.set("name", "divyansh");
     store.set("name", "new_name");
-    val = store.get("name");
 
-    assert(val.has_value());
-    assert(*val == "new_name");
+    auto val = store.get("name");
 
-    // Test DELETE
-    assert(store.remove("name"));
-    val = store.get("name");
-    assert(!val.has_value());
+    ASSERT_TRUE(val.has_value());
+    EXPECT_EQ(*val, "new_name");
+}
 
-    // Test DELETE nonexistent key
-    assert(!store.remove("does_not_exist"));
-    std::cout << "All tests passed!\n";
+TEST(KVStoreTest, RemoveKey) {
+    KVStore store;
+    store.set("name", "divyansh");
+
+    EXPECT_TRUE(store.remove("name"));
+    EXPECT_FALSE(store.get("name").has_value());
+}
+
+TEST(KVStoreTest, RemoveMissingKey) {
+    KVStore store;
+    EXPECT_FALSE(store.remove("missing"));
 }

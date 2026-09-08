@@ -21,8 +21,8 @@ in-memory store into a distributed key-value database.
 
 ## Roadmap
 
-- [ ] Single-node KV store
-- [ ] Unit testing with GoogleTest
+- [x] Single-node KV store
+- [x] Unit testing with GoogleTest
 - [ ] TCP server
 - [ ] Concurrent clients
 - [ ] Write-ahead logging
