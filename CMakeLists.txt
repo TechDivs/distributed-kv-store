@@ -8,9 +8,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(kv_server
     src/main.cpp
     src/kv_store.cpp
+    src/tcp_server.cpp
 )
 
 target_include_directories(kv_server PRIVATE include)
+target_link_libraries(kv_server PRIVATE ws2_32)
 
 include(FetchContent)
 

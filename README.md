@@ -23,7 +23,7 @@ in-memory store into a distributed key-value database.
 
 - [x] Single-node KV store
 - [x] Unit testing with GoogleTest
-- [ ] TCP server
+- [x] TCP server
 - [ ] Concurrent clients
 - [ ] Write-ahead logging
 - [ ] Crash recovery
