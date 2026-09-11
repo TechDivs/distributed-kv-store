@@ -65,48 +65,78 @@ void TCPServer::start() {
     std::cout << "Server listening on port " << port << '\n';
 
     // 6. Accept clients
-    while(true) {
-        SOCKET client_socket = accept(
-            server_socket,
+    while (true) {
+        fd_set read_fds;
+        FD_ZERO(&read_fds);
+
+        // Watch the listening socket
+        FD_SET(server_socket, &read_fds);
+
+        // Watch all connected clients
+        for (SOCKET client : clients) {
+            FD_SET(client, &read_fds);
+        }
+
+        // Wait until at least one socket is ready
+        int result = select(
+            0,
+            &read_fds,
+            nullptr,
             nullptr,
             nullptr
         );
 
-        if (client_socket == INVALID_SOCKET) {
-            closesocket(server_socket);
-            WSACleanup();
-            throw std::runtime_error("accept() failed");
+        if (result == SOCKET_ERROR) {
+            throw std::runtime_error("select() failed");
         }
 
-        std::cout << "Client connected!\n";
-
-        // 7. Receive data
-        char buffer[1024];
-
-        int bytes_received = recv(
-            client_socket,
-            buffer,
-            sizeof(buffer) - 1,
-            0
-        );
-
-        if (bytes_received > 0) {
-            buffer[bytes_received] = '\0';
-            std::cout << "Received: " << buffer << '\n';
-
-            // 8. Send response
-            const char* response = "Hello from server!";
-
-            send(
-                client_socket,
-                response,
-                static_cast<int>(strlen(response)),
-                0
+        // Check if a new client wants to connect
+        if (FD_ISSET(server_socket, &read_fds)) {
+            SOCKET client_socket = accept(
+                server_socket,
+                nullptr,
+                nullptr
             );
+
+            if (client_socket == INVALID_SOCKET) {
+                continue;
+            }
+
+            clients.push_back(client_socket);
+
+            std::cout << "Client connected!\n";
         }
 
-        // 9. Close client connection
-        closesocket(client_socket);
+        // Check existing clients
+        for (SOCKET client : clients) {
+            if (FD_ISSET(client, &read_fds)) {
+
+                char buffer[1024];
+
+                int bytes_received = recv(
+                    client,
+                    buffer,
+                    sizeof(buffer) - 1,
+                    0
+                );
+
+                if (bytes_received > 0) {
+                    buffer[bytes_received] = '\0';
+
+                    std::cout << "Received: "
+                            << buffer << '\n';
+
+                    const char* response = "Hello from server!";
+
+                    send(
+                        client,
+                        response,
+                        static_cast<int>(strlen(response)),
+                        0
+                    );
+                }
+            }
+        }
     }
     
 
