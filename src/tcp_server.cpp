@@ -108,7 +108,8 @@ void TCPServer::start() {
         }
 
         // Check existing clients
-        for (SOCKET client : clients) {
+        for (auto it = clients.begin(); it != clients.end();) {
+            SOCKET client = *it;
             if (FD_ISSET(client, &read_fds)) {
 
                 char buffer[1024];
@@ -134,6 +135,12 @@ void TCPServer::start() {
                         static_cast<int>(strlen(response)),
                         0
                     );
+                    it++;
+                }
+                if (bytes_received == 0) {
+                    std::cout << "Client disconnected!\n";
+                    closesocket(client);
+                    it=clients.erase(it);
                 }
             }
         }
