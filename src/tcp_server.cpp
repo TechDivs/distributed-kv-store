@@ -73,8 +73,8 @@ void TCPServer::start() {
         FD_SET(server_socket, &read_fds);
 
         // Watch all connected clients
-        for (SOCKET client : clients) {
-            FD_SET(client, &read_fds);
+        for (const Client& client : clients) {
+            FD_SET(client.socket, &read_fds);
         }
 
         // Wait until at least one socket is ready
@@ -102,14 +102,14 @@ void TCPServer::start() {
                 continue;
             }
 
-            clients.push_back(client_socket);
+            clients.push_back({client_socket, ""});
 
             std::cout << "Client connected!\n";
         }
 
         // Check existing clients
         for (auto it = clients.begin(); it != clients.end();) {
-            SOCKET client = *it;
+            SOCKET client = it->socket;
             if (FD_ISSET(client, &read_fds)) {
 
                 char buffer[1024];
@@ -117,31 +117,34 @@ void TCPServer::start() {
                 int bytes_received = recv(
                     client,
                     buffer,
-                    sizeof(buffer) - 1,
+                    sizeof(buffer),
                     0
                 );
 
-                if (bytes_received > 0) {
-                    buffer[bytes_received] = '\0';
-
-                    std::cout << "Received: "
-                            << buffer << '\n';
-
-                    const char* response = "Hello from server!";
-
-                    send(
-                        client,
-                        response,
-                        static_cast<int>(strlen(response)),
-                        0
-                    );
-                    it++;
-                }
                 if (bytes_received == 0) {
                     std::cout << "Client disconnected!\n";
                     closesocket(client);
                     it=clients.erase(it);
+                    continue;
                 }
+                
+                if (bytes_received < 0) {
+                    std::cout << "recv() failed, closing client socket\n";
+                    closesocket(client);
+                    it=clients.erase(it);
+                    continue;
+                }
+
+                it->buffer.append(buffer, bytes_received);
+                while (true) {
+                    size_t pos = it->buffer.find('\n');
+                    if (pos == std::string::npos) break;
+
+                    std::string request = it->buffer.substr(0, pos);
+                    it->buffer.erase(0, pos + 1);
+                    std::cout << "Request: " << request << '\n';
+                }
+                it++;
             }
         }
     }

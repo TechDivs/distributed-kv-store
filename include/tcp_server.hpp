@@ -2,12 +2,17 @@
 
 #include <winsock2.h>
 #include <vector>
+#include <string>
 
 class TCPServer {
 private:
     SOCKET server_socket;
     int port;
-    std::vector<SOCKET> clients;
+    struct Client {
+        SOCKET socket;
+        std::string buffer;
+    };
+    std::vector<Client> clients;
 
 public:
     TCPServer(int port);
