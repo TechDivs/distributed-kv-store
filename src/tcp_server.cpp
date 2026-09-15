@@ -3,9 +3,10 @@
 #include <iostream>
 #include <stdexcept>
 
-TCPServer::TCPServer(int port) {
-    this->port = port;
-    server_socket = INVALID_SOCKET;
+TCPServer::TCPServer(int port)
+    : port(port),
+    server_socket(INVALID_SOCKET),
+    parser(kv_store) {
 }
 
 void TCPServer::start() {
@@ -77,7 +78,6 @@ void TCPServer::start() {
             FD_SET(client.socket, &read_fds);
         }
 
-        // Wait until at least one socket is ready
         int result = select(
             0,
             &read_fds,
@@ -103,15 +103,13 @@ void TCPServer::start() {
             }
 
             clients.push_back({client_socket, ""});
-
-            std::cout << "Client connected!\n";
+            continue;
         }
 
         // Check existing clients
         for (auto it = clients.begin(); it != clients.end();) {
             SOCKET client = it->socket;
             if (FD_ISSET(client, &read_fds)) {
-
                 char buffer[1024];
 
                 int bytes_received = recv(
@@ -142,7 +140,18 @@ void TCPServer::start() {
 
                     std::string request = it->buffer.substr(0, pos);
                     it->buffer.erase(0, pos + 1);
+
                     std::cout << "Request: " << request << '\n';
+
+                    std::string response = parser.execute(request);
+                    response += '\n';
+
+                    send(
+                        client,
+                        response.c_str(),
+                        static_cast<int>(response.size()),
+                        0
+                    );
                 }
                 it++;
             }
