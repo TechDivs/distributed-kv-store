@@ -2,6 +2,17 @@
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
+#include <csignal>
+#include <atomic>
+
+constexpr size_t MAX_REQUEST_SIZE = 4096;
+std::atomic<bool> shutdown_requested{false};
+
+void handle_shutdown(int signal) {
+    if (signal == SIGINT) {
+        shutdown_requested = true;
+    }
+}
 
 bool send_all(SOCKET socket, const std::string& data) {
     int total_sent = 0;
@@ -32,6 +43,8 @@ TCPServer::TCPServer(int port)
 }
 
 void TCPServer::start() {
+    shutdown_requested = false;
+    std::signal(SIGINT, handle_shutdown);
     // 1. Initialize Winsock
     WSADATA wsa_data;
 
@@ -100,16 +113,29 @@ void TCPServer::start() {
             FD_SET(client.socket, &read_fds);
         }
 
+        timeval timeout{};
+        timeout.tv_sec = 1;
+        timeout.tv_usec = 0;
+
         int result = select(
             0,
             &read_fds,
             nullptr,
             nullptr,
-            nullptr
+            &timeout
         );
 
         if (result == SOCKET_ERROR) {
             throw std::runtime_error("select() failed");
+        }
+
+        if (shutdown_requested) {
+            stop();
+            break;
+        }
+
+        if (result == 0) {
+            continue;
         }
 
         // Check if a new client wants to connect
@@ -157,6 +183,14 @@ void TCPServer::start() {
                 
                 bool send_failed = false;
                 it->buffer.append(buffer, bytes_received);
+                if (it->buffer.size() > MAX_REQUEST_SIZE) {
+                    std::cout << "Request too large, closing client socket\n";
+
+                    closesocket(client);
+                    it = clients.erase(it);
+                    continue;
+                }
+
                 while (true) {
                     size_t pos = it->buffer.find('\n');
                     if (pos == std::string::npos) break;
@@ -185,11 +219,23 @@ void TCPServer::start() {
             }
         }
     }
-    
+}
 
-    // 10. Close server
-    // closesocket(server_socket);
+void TCPServer::stop() {
+    std::cout << "Shutting down server...\n";
 
-    // 11. Cleanup Winsock
-    // WSACleanup();
+    // Close all connected clients
+    for (const Client& client : clients) {
+        closesocket(client.socket);
+    }
+
+    clients.clear();
+
+    // Close server socket
+    closesocket(server_socket);
+
+    // Cleanup Winsock
+    WSACleanup();
+
+    std::cout << "Server stopped.\n";
 }

@@ -22,4 +22,5 @@ private:
 public:
     TCPServer(int port);
     void start();
+    void stop();
 };
