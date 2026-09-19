@@ -15,6 +15,12 @@ add_executable(kv_server
 target_include_directories(kv_server PRIVATE include)
 target_link_libraries(kv_server PRIVATE ws2_32)
 
+add_executable(kv_client
+    src/tcp_client.cpp
+)
+
+target_link_libraries(kv_client PRIVATE ws2_32)
+
 include(FetchContent)
 
 FetchContent_Declare(

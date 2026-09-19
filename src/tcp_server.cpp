@@ -3,6 +3,28 @@
 #include <iostream>
 #include <stdexcept>
 
+bool send_all(SOCKET socket, const std::string& data) {
+    int total_sent = 0;
+    int data_size = static_cast<int>(data.size());
+
+    while (total_sent < data_size) {
+        int bytes_sent = send(
+            socket,
+            data.c_str() + total_sent,
+            data_size - total_sent,
+            0
+        );
+
+        if (bytes_sent == SOCKET_ERROR) {
+            return false;
+        }
+
+        total_sent += bytes_sent;
+    }
+
+    return true;
+}
+
 TCPServer::TCPServer(int port)
     : port(port),
     server_socket(INVALID_SOCKET),
@@ -126,13 +148,14 @@ void TCPServer::start() {
                     continue;
                 }
                 
-                if (bytes_received < 0) {
+                if (bytes_received == SOCKET_ERROR) {
                     std::cout << "recv() failed, closing client socket\n";
                     closesocket(client);
                     it=clients.erase(it);
                     continue;
                 }
-
+                
+                bool send_failed = false;
                 it->buffer.append(buffer, bytes_received);
                 while (true) {
                     size_t pos = it->buffer.find('\n');
@@ -146,12 +169,17 @@ void TCPServer::start() {
                     std::string response = parser.execute(request);
                     response += '\n';
 
-                    send(
-                        client,
-                        response.c_str(),
-                        static_cast<int>(response.size()),
-                        0
-                    );
+                    if (!send_all(client, response)) {
+                        std::cout << "send() failed\n";
+                        send_failed = true;
+                        break;
+                    }
+                }
+
+                if(send_failed) {
+                    closesocket(client);
+                    it = clients.erase(it);
+                    continue;
                 }
                 it++;
             }
