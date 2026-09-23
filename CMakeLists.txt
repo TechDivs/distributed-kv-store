@@ -10,6 +10,7 @@ add_executable(kv_server
     src/kv_store.cpp
     src/parser.cpp
     src/tcp_server.cpp
+    src/wal.cpp
 )
 
 target_include_directories(kv_server PRIVATE include)
