@@ -38,8 +38,10 @@ enable_testing()
 add_executable(kv_tests
     tests/kv_store_test.cpp
     tests/parser_test.cpp
+    tests/wal_test.cpp
     src/kv_store.cpp
     src/parser.cpp
+    src/wal.cpp
 )
 
 target_include_directories(kv_tests PRIVATE include)

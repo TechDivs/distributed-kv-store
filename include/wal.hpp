@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <fstream>
+#include <windows.h>
 #include <string>
 
 class KVStore;
@@ -9,9 +9,11 @@ class KVStore;
 class WAL {
 private:
     std::string file_path;
-    std::fstream file;
+    HANDLE file_handle;
     uint64_t next_lsn;
 
+    void flush_to_disk();
+    
 public:
     explicit WAL(const std::string& path);
     ~WAL();
