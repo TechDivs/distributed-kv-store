@@ -3,7 +3,14 @@
 using std::cout;
 
 int main() {
-    TCPServer server(8080);
-    server.start();
+    try {
+        TCPServer server(8080);
+        server.start();
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Server failed: " << e.what() << '\n';
+        return 1;
+    }
+    
     return 0;
 }

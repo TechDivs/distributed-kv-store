@@ -244,7 +244,7 @@ void WAL::recover(KVStore& store) {
                 );
             }
 
-            store.set(key, value);
+            store.set_in_memory(key, value);
         }
 
         else if (operation == "DELETE") {
@@ -261,7 +261,7 @@ void WAL::recover(KVStore& store) {
                 );
             }
 
-            store.remove(key);
+            store.remove_in_memory(key);
         }
 
         else {

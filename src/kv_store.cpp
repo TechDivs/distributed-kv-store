@@ -1,8 +1,12 @@
 #include "../include/kv_store.hpp"
+#include "../include/wal.hpp"
 using std::string;
 
+KVStore::KVStore(WAL& wal):wal(wal) {}
+
 void KVStore::set(const string& key, const string& val) {
-    store[key]=val;
+    wal.append_set(key,val);
+    set_in_memory(key,val);
 }
 
 std::optional<string> KVStore::get(const string& key) {
@@ -12,5 +16,15 @@ std::optional<string> KVStore::get(const string& key) {
 }
 
 bool KVStore::remove(const string& key) {
-    return store.erase(key) > 0; // erase returns no. of elements removed
+    if(store.find(key)==store.end()) return false;
+    wal.append_delete(key);
+    return remove_in_memory(key);
+}
+
+void KVStore::set_in_memory(const string& key, const string& val) {
+    store[key] = val;
+}
+
+bool KVStore::remove_in_memory(const string& key) {
+    return store.erase(key) > 0;
 }

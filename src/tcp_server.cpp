@@ -39,7 +39,10 @@ bool send_all(SOCKET socket, const std::string& data) {
 TCPServer::TCPServer(int port)
     : port(port),
     server_socket(INVALID_SOCKET),
+    wal("data.wal"),
+    kv_store(wal),
     parser(kv_store) {
+        wal.recover(kv_store);
 }
 
 void TCPServer::start() {

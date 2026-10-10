@@ -97,9 +97,9 @@ TEST_F(WALTest, Recovery) {
         wal.append_delete("B");
     }
 
-    KVStore store;
-
     WAL wal(file_name);
+    KVStore store(wal);
+
 
     wal.recover(store);
 
@@ -146,9 +146,8 @@ TEST_F(WALTest, FailsRecoveryOnIncompleteRecord) {
         file << "2|SET|B";
     } 
 
-
-    KVStore store;
     WAL wal(file_name);
+    KVStore store(wal);
 
     EXPECT_THROW(
         wal.recover(store),
@@ -169,8 +168,8 @@ TEST_F(WALTest, FailsRecoveryOnCorruptedRecord) {
         file << "3|SET|C|30\n";
     }
 
-    KVStore store;
     WAL wal(file_name);
+    KVStore store(wal);
 
     EXPECT_THROW(
         wal.recover(store),

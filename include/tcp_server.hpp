@@ -4,12 +4,14 @@
 #include <vector>
 #include <string>
 #include "parser.hpp"
+#include "wal.hpp"
 
 class TCPServer {
 private:
     SOCKET server_socket;
     int port;
 
+    WAL wal;
     KVStore kv_store;
     Parser parser;
     
