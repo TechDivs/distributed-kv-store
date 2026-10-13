@@ -25,8 +25,8 @@ in-memory store into a distributed key-value database.
 - [x] Unit testing with GoogleTest
 - [x] TCP server
 - [x] Concurrent clients
-- [ ] Write-ahead logging
-- [ ] Crash recovery
+- [x] Write-ahead logging
+- [x] Crash recovery
 - [ ] Storage engine
 - [ ] Multi-node cluster
 - [ ] Replication

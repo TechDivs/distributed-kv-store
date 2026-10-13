@@ -70,20 +70,31 @@ int main() {
         // Server expects commands ending with '\n'
         command += '\n';
 
-        // Send command to server
-        int bytes_sent = send(
-            client_socket,
-            command.c_str(),
-            static_cast<int>(command.size()),
-            0
-        );
+        // Send the complete command
+        size_t total_sent = 0;
 
-        if (bytes_sent == SOCKET_ERROR) {
-            std::cerr << "send() failed\n";
+        while (total_sent < command.size()) {
+            int bytes_sent = send(
+                client_socket,
+                command.c_str() + total_sent,
+                static_cast<int>(command.size() - total_sent),
+                0
+            );
+
+            if (bytes_sent == SOCKET_ERROR || bytes_sent == 0) {
+                std::cerr << "send() failed\n";
+                total_sent = 0;
+                break;
+            }
+
+            total_sent += bytes_sent;
+        }
+
+        if (total_sent == 0) {
             break;
         }
 
-        // Receive response
+        // Receive response from server
         char buffer[1024];
 
         int bytes_received = recv(

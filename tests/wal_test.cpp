@@ -176,3 +176,23 @@ TEST_F(WALTest, FailsRecoveryOnCorruptedRecord) {
         std::runtime_error
     );
 }
+
+TEST_F(WALTest, FailsRecoveryOnLSNGap) {
+    {
+        std::ofstream file(
+            file_name,
+            std::ios::out | std::ios::binary
+        );
+
+        file << "1|SET|A|10\n";
+        file << "3|SET|B|20\n";
+    }
+
+    WAL wal(file_name);
+    KVStore store(wal);
+
+    EXPECT_THROW(
+        wal.recover(store),
+        std::runtime_error
+    );
+}

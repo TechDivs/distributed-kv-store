@@ -26,7 +26,7 @@ bool send_all(SOCKET socket, const std::string& data) {
             0
         );
 
-        if (bytes_sent == SOCKET_ERROR) {
+        if (bytes_sent <= 0) {
             return false;
         }
 
@@ -131,7 +131,6 @@ void TCPServer::start() {
         if (result == SOCKET_ERROR) {
             throw std::runtime_error("select() failed");
         }
-
         if (shutdown_requested) {
             stop();
             break;
@@ -150,6 +149,7 @@ void TCPServer::start() {
             );
 
             if (client_socket == INVALID_SOCKET) {
+                std::cout << "Failed to accept client connection\n";
                 continue;
             }
 
@@ -160,6 +160,8 @@ void TCPServer::start() {
         // Check existing clients
         for (auto it = clients.begin(); it != clients.end();) {
             SOCKET client = it->socket;
+            // std::cout << "Entering client loop: " << client << std::endl;
+            
             if (FD_ISSET(client, &read_fds)) {
                 char buffer[1024];
 
@@ -218,8 +220,8 @@ void TCPServer::start() {
                     it = clients.erase(it);
                     continue;
                 }
-                it++;
             }
+            ++it;
         }
     }
 }
