@@ -28,3 +28,7 @@ void KVStore::set_in_memory(const string& key, const string& val) {
 bool KVStore::remove_in_memory(const string& key) {
     return store.erase(key) > 0;
 }
+
+std::unordered_map<string,string> KVStore::get_snapshot_data() const {
+    return store;
+}

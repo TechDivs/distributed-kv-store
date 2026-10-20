@@ -19,4 +19,6 @@ public:
     void set(const string& key,const string& val);
     std::optional<string> get(const string& key);
     bool remove(const string& key);
+
+    std::unordered_map<string,string> get_snapshot_data() const;
 };

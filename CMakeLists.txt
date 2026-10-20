@@ -11,6 +11,7 @@ add_executable(kv_server
     src/parser.cpp
     src/tcp_server.cpp
     src/wal.cpp
+    src/snapshot.cpp
 )
 
 target_include_directories(kv_server PRIVATE include)
@@ -39,9 +40,11 @@ add_executable(kv_tests
     tests/kv_store_test.cpp
     tests/parser_test.cpp
     tests/wal_test.cpp
+    tests/snapshot_test.cpp
     src/kv_store.cpp
     src/parser.cpp
     src/wal.cpp
+    src/snapshot.cpp
 )
 
 target_include_directories(kv_tests PRIVATE include)
