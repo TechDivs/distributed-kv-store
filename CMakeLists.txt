@@ -41,6 +41,7 @@ add_executable(kv_tests
     tests/parser_test.cpp
     tests/wal_test.cpp
     tests/snapshot_test.cpp
+    tests/snapshot_recovery_test.cpp
     src/kv_store.cpp
     src/parser.cpp
     src/wal.cpp

@@ -170,7 +170,7 @@ uint64_t WAL::append_delete(const string& key) {
     return lsn;
 }
 
-void WAL::recover(KVStore& store) {
+void WAL::recover(KVStore& store,uint64_t snapshot_lsn) {
     std::ifstream input(file_path);
 
     if (!input) {
@@ -244,7 +244,9 @@ void WAL::recover(KVStore& store) {
                 );
             }
 
-            store.set_in_memory(key, value);
+            if(lsn > snapshot_lsn) {
+                store.set_in_memory(key, value);
+            }
         }
 
         else if (operation == "DELETE") {
@@ -261,7 +263,9 @@ void WAL::recover(KVStore& store) {
                 );
             }
 
-            store.remove_in_memory(key);
+            if(lsn > snapshot_lsn) {
+                store.remove_in_memory(key);
+            }
         }
 
         else {

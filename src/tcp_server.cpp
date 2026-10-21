@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <csignal>
 #include <atomic>
+#include <filesystem>
 
 constexpr size_t MAX_REQUEST_SIZE = 4096;
 std::atomic<bool> shutdown_requested{false};
@@ -38,11 +39,42 @@ bool send_all(SOCKET socket, const std::string& data) {
 
 TCPServer::TCPServer(int port)
     : port(port),
-    server_socket(INVALID_SOCKET),
-    wal("data.wal"),
-    kv_store(wal),
-    parser(kv_store) {
+      server_socket(INVALID_SOCKET),
+      wal("data.wal"),
+      kv_store(wal),
+      parser(kv_store),
+      snapshot("snapshot.dat") {
+
+    if (std::filesystem::exists("snapshot.dat")) {
+        SnapshotData data = snapshot.load();
+        kv_store.restore_snapshot(data.data);
+        wal.recover(kv_store, data.lsn);
+
+        last_snapshot_lsn = data.lsn;
+    } else {
         wal.recover(kv_store);
+        last_snapshot_lsn=0;
+    }
+}
+
+void TCPServer::maybe_create_snapshot() {
+    uint64_t latest_lsn = wal.get_next_lsn() - 1;
+    if (latest_lsn-last_snapshot_lsn >= 3) {
+        try {
+            snapshot.save(
+                kv_store.get_snapshot_data(),
+                latest_lsn
+            );
+
+            last_snapshot_lsn = latest_lsn;
+
+            std::cout << "Snapshot created at LSN "
+                    << latest_lsn << '\n';
+        } catch (const std::exception& e) {
+            std::cerr << "Snapshot creation failed: "
+                    << e.what() << '\n';
+        }
+    }
 }
 
 void TCPServer::start() {
@@ -205,8 +237,21 @@ void TCPServer::start() {
 
                     std::cout << "Request: " << request << '\n';
 
+                    uint64_t previous_lsn = wal.get_next_lsn() - 1;
                     std::string response = parser.execute(request);
                     response += '\n';
+
+                    uint64_t latest_lsn = wal.get_next_lsn() - 1;
+
+                    if (latest_lsn < last_snapshot_lsn) {
+                        throw std::runtime_error(
+                            "Latest WAL LSN is behind the last snapshot"
+                        );
+                    }
+
+                    if (latest_lsn > previous_lsn) {
+                        maybe_create_snapshot();
+                    }
 
                     if (!send_all(client, response)) {
                         std::cout << "send() failed\n";

@@ -21,4 +21,5 @@ public:
     bool remove(const string& key);
 
     std::unordered_map<string,string> get_snapshot_data() const;
+    void restore_snapshot(const std::unordered_map<string,string>& data);
 };

@@ -19,6 +19,6 @@ public:
     ~WAL();
     uint64_t append_set(const std::string& key,const std::string& val);
     uint64_t append_delete(const std::string& key);
-    void recover(KVStore& store);
+    void recover(KVStore& store,uint64_t snapshot_lsn=0);
     uint64_t get_next_lsn() const;
 };

@@ -32,3 +32,7 @@ bool KVStore::remove_in_memory(const string& key) {
 std::unordered_map<string,string> KVStore::get_snapshot_data() const {
     return store;
 }
+
+void KVStore::restore_snapshot(const std::unordered_map<string,string>& data) {
+    store = data;
+}
