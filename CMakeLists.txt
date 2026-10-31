@@ -12,6 +12,7 @@ add_executable(kv_server
     src/tcp_server.cpp
     src/wal.cpp
     src/snapshot.cpp
+    src/memtable.cpp
 )
 
 target_include_directories(kv_server PRIVATE include)
@@ -42,10 +43,13 @@ add_executable(kv_tests
     tests/wal_test.cpp
     tests/snapshot_test.cpp
     tests/snapshot_recovery_test.cpp
+    tests/memtable_test.cpp
+    
     src/kv_store.cpp
     src/parser.cpp
     src/wal.cpp
     src/snapshot.cpp
+    src/memtable.cpp
 )
 
 target_include_directories(kv_tests PRIVATE include)

@@ -59,7 +59,7 @@ TCPServer::TCPServer(int port)
 
 void TCPServer::maybe_create_snapshot() {
     uint64_t latest_lsn = wal.get_next_lsn() - 1;
-    if (latest_lsn-last_snapshot_lsn >= 3) {
+    if (latest_lsn-last_snapshot_lsn >= 10000) {
         try {
             snapshot.save(
                 kv_store.get_snapshot_data(),
