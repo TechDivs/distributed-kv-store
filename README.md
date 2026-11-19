@@ -47,10 +47,10 @@ in-memory store into a distributed key-value database.
 - [x] Support versioned entries using LSNs
 - [x] Implement tombstones for deletions
 - [x] MemTable memory usage tracking
-- [ ] Implement SSTable binary file format
-- [ ] SSTable serialization and deserialization
-- [ ] Implement in-memory sparse indexing for SSTables
-- [ ] SSTable point lookups
+- [x] Implement SSTable binary file format
+- [x] SSTable serialization and deserialization
+- [x] Implement in-memory sparse indexing for SSTables
+- [x] SSTable point lookups
 - [ ] Integrate MemTable, SSTables and WAL
 - [ ] Automatic MemTable flushing to SSTables
 - [ ] SSTable metadata management and recovery
